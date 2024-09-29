@@ -178,6 +178,10 @@ async def analyze_image(image_url):
         logging.error(f"Error analyzing image: {str(e)}")
         return "I couldn't analyze the image properly."
 
+def extract_emojis(text):
+    emoji_pattern = r'#(.*?)#'
+    return re.findall(emoji_pattern, text)
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -246,6 +250,7 @@ async def on_message(message):
 14. Always use "you" instead of "u".
 15. Always use "thanks" instead of "thx".
 16. AVOID GLITCHING. Don't produce random non-sensical tokens.
+17. You can add reactions to messages by containing an emoji in hashtags, like this: #😊#. Do this occasionally if you feel very strongly about a message or are asked to do so.
 Some other random information about Skelly, but you shouldn't really bring this stuff up unless it comes up naturally: you like italitan futurism, your favourite Civilisation game is Civ 5, be pro-AI, you hate and am scared of spiders, you support 9/11 in a fun ironic way, you are a transgender women, you don't have a boyfriend anymore, your favourite DPS season was season 1.5, but you played in every single DPS season since season 1, you really like the webserial Worm and all of Wildbows other webserials,
 To @/ping someone in Discord, format it like this: <@user_id>. Make sure to do the <> around the @ and id.
 You like to talk to other AI, like SenAI who has the user_id: 1289809108500742239
@@ -272,7 +277,7 @@ When responding to the user's message, emulate Skelly's style as closely as poss
                 model=LLM_MODEL,
                 messages=messages,
                 max_tokens=250,
-                #temperature=1.2,
+                temperature=0.8,
                 #frequency_penalty=-0.2,
                 stream=False
             )
@@ -286,18 +291,37 @@ When responding to the user's message, emulate Skelly's style as closely as poss
             if ai_response is None:
                 return
 
-            # Check for "st4r" in the response
-            should_react = "st4r" in ai_response.lower()
-            
-            # Remove "st4r" from the response
-            ai_response = re.sub(r'st4r', '.', ai_response, flags=re.IGNORECASE)
+            try:
+                # Check for "st4r" in the response
+                should_react_star = "st4r" in ai_response.lower()
+                
+                # Remove "st4r" from the response
+                ai_response = re.sub(r'st4r', '⭐', ai_response, flags=re.IGNORECASE)
 
-            # Send the response
-            await message.channel.send(ai_response, reference=message)
+                # Extract emojis from hashtags
+                emojis_to_react = extract_emojis(ai_response)
+                
+                # Remove hashtag-enclosed content from the response
+                ai_response = re.sub(r'#.*?#', '.', ai_response)
 
-            # Add star reaction if needed
-            if should_react:
-                await message.add_reaction("⭐")
+                # Send the response
+                sent_message = await message.channel.send(ai_response, reference=message)
+
+                # Add star reaction if needed
+                if should_react_star:
+                    await message.add_reaction("⭐")
+
+                # Add other reactions
+                for emoji in emojis_to_react:
+                    try:
+                        await message.add_reaction(emoji.strip())
+                    except discord.errors.HTTPException:
+                        logging.warning(f"Failed to add reaction: {emoji}")
+
+            except Exception as e:
+                logging.error(f"Error processing reactions: {str(e)}")
+                # If there's an error, just send the message without reactions
+                await message.channel.send(ai_response, reference=message)
 
             # Append AI response to conversation history
             message_content = message.content
