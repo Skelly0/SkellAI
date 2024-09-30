@@ -215,7 +215,7 @@ async def on_message(message):
             parsed_conversation = []
 
             for i, line in enumerate(conversation_lines):
-                role = "Other Person" if i % 2 == 0 else "You/SkellAI"
+                role = "Other Person" if i % 2 == 0 else "You"
                 parsed_conversation.append({"role": role, "content": line})
 
             parsed_conversation.append({"role": "Recent Discord Channel History", "content": context})
