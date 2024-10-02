@@ -11,7 +11,6 @@ import datetime
 import re
 import aiohttp
 from bs4 import BeautifulSoup
-import re
 import requests
 
 # Load environment variables
@@ -335,13 +334,13 @@ async def on_message(message):
         if user.id != None:
             userid = user.id  
         
-        random_skelly_messages = random.sample(skelly_messages, min(200, len(skelly_messages))) + random.sample(skelly_zone_messages, min(150, len(skelly_zone_messages)))
+        random_skelly_messages = random.sample(skelly_messages, min(400, len(skelly_messages))) + random.sample(skelly_zone_messages, min(400, len(skelly_zone_messages)))
 
         channel_history = await get_channel_history(message.channel)
         context = "\n".join(channel_history[-CHANNEL_REMEMBERANCE:])
 
         query_text = f"{username}'s Nickname on this Server: {nickname}\n\n{username}'s user_id: {userid}\n\n{username}'s message: {message.content}"
-        context = f"Context of recent messages in the #{message.channel} channel:{context}\n\n"
+        context = f"Context of recent messages in the #{message.channel} channel:\n{context}\n\n"
 
         print("\n\n\n")
         print(context)
